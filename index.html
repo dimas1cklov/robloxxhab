@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coin Booster</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<style>
+  :root { 
+    --ink: #111214; 
+    --surface: #ffffff;
+    --surface-hover: #f3f5f7;
+    --border: #e1e3e6;
+    --primary: #00b06f; 
+    --duration: 2000; 
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  
+  body { 
+    display: flex; 
+    background-color: #f7f9fa; /* Very light gray */
+    font-family: 'Inter', sans-serif; 
+    color: var(--ink); 
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* --- External Floating Glares --- */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    z-index: -1;
+    pointer-events: none; /* Prevents blocking clicks */
+    animation: floatBlob 12s infinite alternate ease-in-out;
+  }
+  .blob-1 { width: 350px; height: 350px; background: #00b06f; top: -5%; left: 10%; animation-delay: 0s; }
+  .blob-2 { width: 450px; height: 450px; background: #0088ff; bottom: -10%; right: 5%; animation-delay: -4s; }
+  .blob-3 { width: 300px; height: 300px; background: #ffcc00; top: 50%; left: 60%; animation-delay: -8s; }
+
+  @keyframes floatBlob {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(60px, 80px) scale(1.15); }
+  }
+
+  /* --- Flying Glares --- */
+  .glare {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.8;
+    animation: floatUp linear infinite;
+  }
+  .glare-1 { width: 12px; height: 12px; left: 15%; bottom: -5%; background: #00b06f; box-shadow: 0 0 20px 8px rgba(0, 176, 111, 0.6); animation-duration: 7s; animation-delay: 0s; }
+  .glare-2 { width: 18px; height: 18px; left: 45%; bottom: -5%; background: #0088ff; box-shadow: 0 0 20px 8px rgba(0, 136, 255, 0.6); animation-duration: 10s; animation-delay: 2s; }
+  .glare-3 { width: 10px; height: 10px; left: 75%; bottom: -5%; background: #ffcc00; box-shadow: 0 0 20px 8px rgba(255, 204, 0, 0.6); animation-duration: 8s; animation-delay: 4s; }
+  .glare-4 { width: 22px; height: 22px; left: 25%; bottom: -5%; background: #00b06f; box-shadow: 0 0 20px 8px rgba(0, 176, 111, 0.6); animation-duration: 12s; animation-delay: 1s; }
+  .glare-5 { width: 14px; height: 14px; left: 85%; bottom: -5%; background: #0088ff; box-shadow: 0 0 20px 8px rgba(0, 136, 255, 0.6); animation-duration: 9s; animation-delay: 3s; }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { opacity: 0.8; }
+    100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+  }
+
+  /* --- App Container --- */
+  .app {
+    --h: min(100dvh, 900px);
+    position: relative; margin: auto; 
+    width: min(100vw, calc(var(--h) * 390 / 844));
+    height: min(var(--h), calc(100vw * 844 / 390));
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  /* --- Inner Dynamic Grid & Gradient --- */
+  .app::before {
+    content: '';
+    position: absolute;
+    inset: -150%; 
+    background-image: 
+      linear-gradient(rgba(0, 176, 111, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 176, 111, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: scrollGrid 20s linear infinite;
+    z-index: 0;
+    pointer-events: none; /* CRITICAL: Allows clicking through the grid */
+  }
+
+  /* --- Внутренние летающие блики (ВНУТРИ ПРИЛОЖЕНИЯ) --- */
+  .inner-glare {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(50px);
+    opacity: 0.6;
+    z-index: 1; /* Находятся над сеткой, но под контентом */
+    pointer-events: none;
+    animation: floatInner 10s infinite alternate ease-in-out;
+  }
+  .inner-glare-1 { width: 250px; height: 250px; background: rgba(0, 176, 111, 0.5); top: -10%; left: -20%; animation-delay: 0s; }
+  .inner-glare-2 { width: 300px; height: 300px; background: rgba(0, 136, 255, 0.4); bottom: -10%; right: -20%; animation-delay: -4s; }
+  .inner-glare-3 { width: 200px; height: 200px; background: rgba(255, 204, 0, 0.4); top: 35%; left: 40%; animation-delay: -7s; }
+
+  @keyframes floatInner {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 80px) scale(1.3); }
+  }
+
+  @keyframes scrollGrid {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+  }
+  
+  /* --- Inner Flying Glares --- */
+  .app-glare {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.6;
+    z-index: 1; /* Находится под контентом, но над фоном */
+    pointer-events: none;
+    animation: floatInner 10s infinite alternate ease-in-out;
+  }
+  .app-glare-1 { width: 180px; height: 180px; background: rgba(0, 176, 111, 0.4); top: 10%; left: -10%; }
+  .app-glare-2 { width: 220px; height: 220px; background: rgba(0, 136, 255, 0.3); top: 50%; right: -20%; animation-delay: -3s; }
+  .app-glare-3 { width: 150px; height: 150px; background: rgba(255, 204, 0, 0.3); bottom: 5%; left: 20%; animation-delay: -6s; }
+
+  @keyframes floatInner {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(40px, 40px) scale(1.2); }
+  }
+  
+  /* --- Typography & Basics --- */
+  button, input { font-family: inherit; }
+  button { cursor: pointer; transition: transform 0.1s ease, background 0.2s ease; outline: none; }
+  button:active { transform: scale(0.96); }
+  :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  h1 { margin: 0; font: 800 28px/1.2 'Inter', sans-serif; letter-spacing: -0.5px; z-index: 2; position: relative; }
+  p { margin: 0; font-size: 15px; font-weight: 600; color: #5a5c5e; z-index: 2; position: relative; }
+
+  /* --- Screens --- */
+  .screen { 
+    display: none; position: absolute; inset: 0; padding: 100px 24px 32px; 
+    flex-direction: column; gap: 24px; 
+    z-index: 10; /* Keeps content above the moving grid */
+  }
+  .screen.active { display: flex; }
+  .head { display: flex; flex-direction: column; gap: 6px; }
+
+  .back {
+    position: absolute; left: 20px; top: 40px; z-index: 20; width: 44px; height: 44px;
+    border: 1px solid var(--border); border-radius: 50%; background: var(--surface);
+    display: none; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .back.show { display: flex; }
+  .back svg { pointer-events: none; }
+
+  /* 1. Games Screen */
+  #games { justify-content: center; gap: 32px; text-align: center; }
+  #games h1 { font-size: 30px; }
+  .tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; position: relative; z-index: 2; }
+  .tile {
+    width: calc((100% - 16px) / 2); max-width: 156px; padding: 18px 12px; 
+    border: 1px solid var(--border); border-radius: 24px;
+    background: var(--surface); color: var(--ink); 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .tile .icon { 
+    width: 88px; height: 88px; border-radius: 20px; 
+    display: flex; align-items: center; justify-content: center; 
+    overflow: hidden; padding: 12px;
+    box-shadow: inset 0 2px 6px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .tile .icon img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+  .tile b { font: 700 16px 'Inter', sans-serif; }
+  .tile small { font-size: 12px; font-weight: 600; color: #7a7c7f; }
+
+  /* 2. Packs Screen */
+  .packs { display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 2; }
+  .pack {
+    min-height: 72px; padding: 12px 20px; border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--ink); 
+    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    display: flex; align-items: center; gap: 16px; text-align: left;
+  }
+  .pack:hover { background: var(--surface-hover); border-color: #d0d2d5; }
+  .coin-img { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); pointer-events: none; }
+  .pack b { flex: 1; font: 800 22px 'Inter', sans-serif; pointer-events: none; }
+  .pack span { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 10px; pointer-events: none; }
+
+  /* 3. Nickname Screen */
+  .coin-big { display: flex; justify-content: center; padding: 12px 0; position: relative; z-index: 2; }
+  .coin-big img { width: 130px; height: 130px; object-fit: contain; filter: drop-shadow(0 12px 24px rgba(0,0,0,0.2)); }
+  label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #5a5c5e; position: relative; z-index: 2; }
+  #nick {
+    width: 100%; height: 64px; padding: 0 20px; 
+    border: 2px solid var(--border); border-radius: 18px;
+    font-size: 18px; font-weight: 700; color: var(--ink); background: var(--surface);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative; z-index: 2;
+  }
+  #nick:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 176, 111, 0.15); }
+  
+  .cta {
+    margin-top: auto; width: 100%; height: 64px; border: 0; border-radius: 18px;
+    background: var(--ink); color: #fff; font: 700 18px 'Inter', sans-serif;
+    box-shadow: 0 8px 24px rgba(17, 18, 20, 0.2);
+    position: relative; z-index: 2;
+  }
+  .cta:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+  /* 4. Boost Screen */
+  #boost { padding-top: 100px; align-items: center; text-align: center; gap: 14px; }
+  .avatar { width: 100px; height: 100px; padding: 5px; border-radius: 50%; background: linear-gradient(135deg, #00b06f, #0088ff); position: relative; z-index: 2; }
+  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: var(--surface); display: block; }
+  .name { font: 800 24px 'Inter', sans-serif; margin-top: 4px; position: relative; z-index: 2; }
+  .chip { font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: #5a5c5e; position: relative; z-index: 2; }
+  
+  .counter { margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 14px; font: 800 52px/1.1 'Inter', sans-serif; letter-spacing: -1px; font-variant-numeric: tabular-nums; position: relative; z-index: 2; }
+  .caption { font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #7a7c7f; text-transform: uppercase; position: relative; z-index: 2; }
+  
+  .bar { width: 100%; height: 12px; margin-top: 12px; border-radius: 6px; background: #e1e3e6; overflow: hidden; position: relative; z-index: 2; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--primary); transition: width 0.1s linear; }
+  #status { min-height: 22px; font-size: 15px; font-weight: 600; color: #5a5c5e; position: relative; z-index: 2; }
+  #again { display: none; }
+  #again.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Dynamic External Background -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="app">
+
+  <!-- Внутренние блики -->
+  <div class="inner-glare inner-glare-1"></div>
+  <div class="inner-glare inner-glare-2"></div>
+  <div class="inner-glare inner-glare-3"></div>
+
+  <button class="back" id="back" aria-label="Back">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111214" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+
+  <!-- Screen 1: Game Selection -->
+  <section class="screen active" id="games">
+    <div class="head">
+      <h1>Choose a game</h1>
+      <p>Select destination platform</p>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- Screen 2: Pack Selection -->
+  <section class="screen" id="packs">
+    <div class="head">
+      <h1>Select amount</h1>
+      <p>Game: <span id="packsGame"></span></p>
+    </div>
+    <div class="packs" id="packList"></div>
+  </section>
+
+  <!-- Screen 3: Nickname -->
+  <section class="screen" id="nickScreen">
+    <div class="head">
+      <h1>Enter username</h1>
+      <p><span id="nickGame"></span> · <span id="nickPack"></span> resources</p>
+    </div>
+    <div class="coin-big"><img src="https://i.ibb.co/4RnzzDH9/Robux-2019-Logo-gold-svg.webp" alt="Gold Coin"></div>
+    <div class="head">
+      <label for="nick">In-game username</label>
+      <input id="nick" type="text" placeholder="e.g. builderman" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <button class="cta" id="start" disabled>Add resources</button>
+  </section>
+
+  <!-- Screen 4: Injection Progress -->
+  <section class="screen" id="boost">
+    <div class="avatar">
+      <img src="https://i.ibb.co/zVbHmhBx/foni-papik-pro-nhql-p-kartinki-robloks-chelovechki-na-prozrachno-14.png" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #fff;">
+    </div>
+    <div class="name">@<span id="boostNick"></span></div>
+    <div class="chip" id="boostGame"></div>
+    <div class="counter"><img src="https://i.ibb.co/4RnzzDH9/Robux-2019-Logo-gold-svg.webp" alt="Gold Coin" class="coin-img"><span id="count">0</span></div>
+    <div class="caption">RESOURCES ADDED</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div id="status"></div>
+    <button class="cta" id="again">Done</button>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  // ---- Config -------------------------------------------------------------
+  const DURATION_MS = 1700;
+  
+  // Game configurations with background gradients behind their icons
+  const GAMES = [
+    { name: 'Roblox', sub: 'Virtual Universe', img: 'https://i.ibb.co/XfHdj6cy/Roblox-Corporation-2025-logo.webp', bg: 'linear-gradient(135deg, #1bd982, #00b06f)' },
+    { name: 'PUBG MOBILE', sub: 'Battle Royale', img: 'https://i.ibb.co/0Rw4zN4g/PUBG-Mobile.webp', bg: 'linear-gradient(135deg, #ffb347, #ff7b00)' },
+    { name: 'FREE FIRE', sub: 'Survival Shooter', img: 'https://i.ibb.co/ZRQKHK5k/images.jpg', bg: 'linear-gradient(135deg, #ff6b6b, #d10000)' },
+  ];
+  
+  // Coin packs with custom tag styling
+  const PACKS = [
+    { value: 2500,  tag: 'Start',   bg: '#e8eaed', color: '#111214' },
+    { value: 5000,  tag: 'Popular', bg: '#fef0c7', color: '#b54708' },
+    { value: 10000, tag: 'Value',   bg: '#e0f2fe', color: '#026aa2' },
+    { value: 15000, tag: 'Hot',     bg: '#fee4e2', color: '#b42318' },
+    { value: 25000, tag: 'MAX',     bg: '#d1fadf', color: '#027a48' },
+  ];
+  
+  const STATUSES = [
+    [0.25, 'Connecting to servers…'],
+    [0.55, 'Verifying account…'],
+    [0.85, 'Injecting resources…'],
+    [1,    'Finalizing…'],
+  ];
+
+  // ---- Helpers ------------------------------------------------------------
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const state = { screen: 'games', game: null, pack: null };
+  let timer = null;
+  let confettiInterval = null;
+
+  function show(screen) {
+    state.screen = screen;
+    document.querySelectorAll('.screen').forEach((el) => el.classList.toggle('active', el.id === screen));
+    $('back').classList.toggle('show', screen === 'packs' || screen === 'nickScreen');
+  }
+
+  // ---- Screen 1: games ----------------------------------------------------
+  $('tiles').innerHTML = GAMES.map((g, i) => `
+    <button class="tile" data-i="${i}">
+      <span class="icon" style="background:${g.bg}">
+        <img src="${g.img}" alt="${g.name}">
+      </span>
+      <b>${g.name}</b><small>${g.sub}</small>
+    </button>`).join('');
+    
+  $('tiles').addEventListener('click', (e) => {
+    const tile = e.target.closest('.tile');
+    if (!tile) return;
+    state.game = GAMES[tile.dataset.i];
+    $('packsGame').textContent = $('nickGame').textContent = state.game.name;
+    show('packs');
+  });
+
+  // ---- Screen 2: packs ----------------------------------------------------
+  $('packList').innerHTML = PACKS.map((p, i) => `
+    <button class="pack" data-i="${i}">
+      <img src="https://i.ibb.co/4RnzzDH9/Robux-2019-Logo-gold-svg.webp" alt="Gold Coin" class="coin-img">
+      <b>${fmt(p.value)}</b>
+      <span style="background:${p.bg}; color:${p.color}">${p.tag}</span>
+    </button>`).join('');
+    
+  $('packList').addEventListener('click', (e) => {
+    const btn = e.target.closest('.pack');
+    if (!btn) return;
+    state.pack = PACKS[btn.dataset.i];
+    $('nickPack').textContent = fmt(state.pack.value);
+    show('nickScreen');
+  });
+
+  // ---- Screen 3: nickname -------------------------------------------------
+  $('nick').addEventListener('input', () => { $('start').disabled = !$('nick').value.trim(); });
+  $('start').addEventListener('click', startBoost);
+
+  // ---- Screen 4: boost ----------------------------------------------------
+  function startBoost() {
+    const nick = $('nick').value.trim();
+    if (!nick) return;
+    $('boostNick').textContent = nick;
+    $('boostGame').textContent = state.game.name;
+    $('again').classList.remove('show');
+    show('boost');
+
+    const target = state.pack.value;
+    const t0 = Date.now();
+    clearInterval(timer);
+    
+    timer = setInterval(() => {
+      const p = Math.min(1, (Date.now() - t0) / DURATION_MS);
+      const eased = 1 - Math.pow(1 - p, 2.2); // Smooth ease-out animation
+      $('count').textContent = fmt(p >= 1 ? target : Math.floor(target * eased));
+      $('bar').style.width = Math.round(p * 100) + '%';
+      
+      const statusText = p >= 1 ? 'Done! Resources added.' : STATUSES.find(([limit]) => p < limit)[1];
+      $('status').textContent = statusText;
+      
+      if (p >= 1) {
+        clearInterval(timer);
+        $('again').classList.add('show');
+        
+        // Запуск бесконечного конфетти
+        if (!confettiInterval) {
+          confettiInterval = setInterval(() => {
+            confetti({ particleCount: 7, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#00b06f', '#0088ff', '#ffcc00'], zIndex: 9999 });
+            confetti({ particleCount: 7, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#00b06f', '#0088ff', '#ffcc00'], zIndex: 9999 });
+          }, 150);
+        }
+      }
+    }, 50);
+  }
+
+  // ---- Navigation ---------------------------------------------------------
+  $('back').addEventListener('click', () => show(state.screen === 'nickScreen' ? 'packs' : 'games'));
+  $('again').addEventListener('click', () => {
+    clearInterval(timer);
+    if (confettiInterval) {
+      clearInterval(confettiInterval);
+      confettiInterval = null;
+    }
+    $('nick').value = '';
+    $('start').disabled = true;
+    state.game = state.pack = null;
+    show('games');
+  });
+})();
+</script>
+</body>
+</html>
